@@ -8,8 +8,8 @@ c#版本K-V缓存，实现FIFO,LRU,LFU策略。通过配置类设置缓存信息
     cache.Add(1, 1);  
     或者  
     CacheConfig config = new CacheConfig();  
-    config.CacheTime = 1800;//（时间都是秒) 
-    config.Policy = CachePolicy.FIFO;//设置消失策略  
+    config.CacheTime = 1800;//（时间都是秒)  
+    config.Policy = CachePolicy.FIFO;//设置消失策略   
     ICache<int,int> cache=CacheFactory<int, int>.Create(config);  
     cache.CacheRemoveListener += Cache_CacheRemoveListener;  
     cache.Add(1, 1，10);//单独设置key保持10秒  
