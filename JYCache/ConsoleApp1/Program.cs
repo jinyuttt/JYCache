@@ -12,8 +12,11 @@ namespace ConsoleApp1
     {
         static void Main(string[] args)
         {
-          
-           ICache<int,int> cache=CacheFactory<int, int>.Create();
+
+            CacheConfig config = new CacheConfig();
+            config.CacheTime = 1800;
+            config.Policy = CachePolicy.FIFO;
+           ICache<int,int> cache=CacheFactory<int, int>.Create(config);
             cache.CacheRemoveListener += Cache_CacheRemoveListener;
             
             for(int i=0;i<10;i++)
@@ -24,6 +27,7 @@ namespace ConsoleApp1
                     for (int j = num; j <num+10000; j++)
                     {
                         cache.Add(j, j);
+                        cache.Add()
                     }
                 });
             }
