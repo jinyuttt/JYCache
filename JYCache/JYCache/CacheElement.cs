@@ -13,7 +13,7 @@ using System.Text;
 namespace JYCache
 {
     /// <summary>
-    /// 功能描述    ：CacheElement  
+    /// 功能描述    ：CacheElement  操作的缓存value数据
     /// 创 建 者    ：jinyu
     /// 创建日期    ：2018/11/5 11:23:32 
     /// 最后修改者  ：jinyu

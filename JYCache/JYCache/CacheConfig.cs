@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Diagnostics.Contracts;
 using System.IO;
 using System.Reflection;
-using System.Text;
 
 /**
 * 命名空间: JYCache 
@@ -17,10 +16,11 @@ namespace JYCache
 {
     /// <summary>
     /// 功能描述    ：CacheConfig  缓存配置
+    /// 增加持久化配置
     /// 创 建 者    ：jinyu
-    /// 创建日期    ：2018/11/5 0:09:28 
+    /// 创建日期    ：2018/11/5 
     /// 最后修改者  ：jinyu
-    /// 最后修改日期：2018/11/5 0:09:28 
+    /// 最后修改日期：2019/06/05 
     /// </summary>
    public class CacheConfig
     {
@@ -30,6 +30,8 @@ namespace JYCache
         private float weigher = 0.9f;
         private int cacheTime = 300;
         private int maxCacheSize = int.MaxValue;
+        private int persTime = 3000;
+
         /// <summary>
         /// 最大缓存
         /// </summary>
@@ -45,6 +47,33 @@ namespace JYCache
         ///移除策略
         /// </summary>
         public CachePolicy Policy { get; set; }
+
+        /// <summary>
+        /// 持久化策略
+        /// 新增2019-06-05
+        /// 默认：none 不持久化
+        /// </summary>
+        public PersistencePolicy PersPolicy { get; set; }
+
+        /// <summary>
+        /// 启用持久时，是否从文件中获取数据
+        /// 只有持久化为ALL或者Expire有效
+        /// 默认：flase
+        /// </summary>
+        public bool FindPers { get; set; }
+
+        /// <summary>
+        /// 持久保存刷新时间
+        /// 默认：3000ms
+        /// 单位：毫秒
+        /// </summary>
+        public int PersTime { get { return persTime; } set { persTime = value; } }
+
+        /// <summary>
+        /// 持久化数据目录
+        /// </summary>
+        public string PersDir { get; set; }
+
 
         /// <summary>
         /// 初始化大小

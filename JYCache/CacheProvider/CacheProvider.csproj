@@ -2,10 +2,14 @@
 
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
-    <Version>1.1.0</Version>
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="MessagePack" Version="1.7.3.7" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\BPlusTree\BPlusTree.csproj" />
     <ProjectReference Include="..\ICacheStore\ICacheStore.csproj" />
   </ItemGroup>
 

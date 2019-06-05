@@ -19,7 +19,7 @@ namespace JYCache
 {
     /// <summary>
     /// 功能描述    ：JYCache  缓存
-    /// 如果允许扩展空间，则记录炒作顺序（非LFU）
+    /// 如果允许扩展空间，则记录操作顺序（非LFU）
     /// 如果允许扩展空间，LFU策略，则记录弱KEY,则记录KEY
     /// 如果不允许扩展空间，则记录KEY(获取KEY)
     /// 创 建 者    ：jinyu
@@ -29,28 +29,34 @@ namespace JYCache
     /// </summary>
     public class JYCache<TKey, TValue> : ICache<TKey, TValue>
     {
-        private ConcurrentDictionary<TKey, CacheEntity<TValue>> dicCache = null;
+        private readonly ConcurrentDictionary<TKey, CacheEntity<TValue>> dicCache = null;
         private ConditionalWeakTable<object, CacheEntity<TValue>> dicWeakKey = null;
-        private ConcurrentDictionary<TKey, CacheEntity<WeakReference<object>>> dicWeakValue = null;
+        private readonly ConcurrentDictionary<TKey, CacheEntity<WeakReference<object>>> dicWeakValue = null;
         private ConditionalWeakTable<object, CacheEntity<WeakReference<object>>> dicWeakKV = null;
-         
-        private ConcurrentStack<TKey> stack= null;//记录操作
-        private ConcurrentDictionary<TKey, string> dicKeys = null;//记录所有key
-        private ConcurrentQueue<RemoveEntity<TKey, TValue>> removeEntities = null;
-        private IPolicyCompare<TValue> policy = null;
-        private IPolicyCompare<WeakReference<object>> weakpolicy = null;
-        private CacheConfig config = null;//配置
+        private readonly ConcurrentStack<TKey> stack= null;//记录操作
+        private readonly ConcurrentDictionary<TKey, string> dicKeys = null;//记录所有key
+        private readonly ConcurrentQueue<RemoveEntity<TKey, TValue>> removeEntities = null;
+        private readonly IPolicyCompare<TValue> policy = null;
+        private readonly IPolicyCompare<WeakReference<object>> weakpolicy = null;
+        private readonly CacheConfig config = null;//配置
         private readonly int kvState = -1;//使用的类型
         private readonly int weighter = 0;//权重
         private volatile bool isRun = false;//正在消失数据
         private const int ticksMS = 10000;//1万个是1毫秒
-        private bool isStop = false;//正在使用
+        private readonly bool isStop = false;//正在使用
         private long lastWriteTime = 0;//
         private long cacheSize = 0;//缓存大小
         private volatile bool isRunRemove = false;//启动推送;
         private volatile bool isRunTimeOut = false;//启动超时监测
         private int waitTimeOut = 0;//监测缓存时间休眠线程
-        private Lazy<CacheTask<TKey,TValue>> lazyObject = new Lazy<CacheTask<TKey,TValue>>();
+        private readonly Lazy<CacheTask<TKey,TValue>> lazyObject = new Lazy<CacheTask<TKey,TValue>>();
+
+        private string cacheName;//缓存名称
+
+       //持久化使用
+        private ConcurrentDictionary<TKey, TValue> dicPersAdd = null;
+        private ConcurrentDictionary<TKey, TValue> dicPersRemove = null;
+        private PersCache<TKey, TValue> PersItems = null;
 
         /// <summary>
         /// 移除监听
@@ -111,7 +117,23 @@ namespace JYCache
             waitTimeOut = config.CacheTime * 1000;//转换毫秒
         }
 
-        public string CacheName { get; set; }
+        public string CacheName
+        {
+            get { return cacheName; }
+            set
+            {
+                cacheName = value;
+                if (Store != null)
+                {
+                    Store.Name = cacheName;
+                }
+            }
+        }
+
+        /// <summary>
+        /// 持久化
+        /// </summary>
+        internal ICacheStore.ICacheStore Store { get; set; }
 
         #region 内部操作
 
@@ -132,6 +154,10 @@ namespace JYCache
                         if (CacheRemoveListener != null)
                         {
                             CacheRemoveListener(this, entity.Key, entity.Value, entity.State);
+                        }
+                        if (dicPersRemove != null)
+                        {
+                            dicPersRemove[entity.Key] = entity.Value;
                         }
                     }
                     if (isStop)
@@ -671,9 +697,117 @@ namespace JYCache
         {
            return lazyObject.IsValueCreated &&lazyObject.Value.IsPersistent(key);
         }
+       
+
+        /// <summary>
+        /// 启动持久化
+        /// </summary>
+        internal void CheckStore()
+        {
+            if(PersistencePolicy.All==config.PersPolicy)
+            {
+                dicPersAdd = new ConcurrentDictionary<TKey, TValue>();
+            }
+            else if(PersistencePolicy.Expire==config.PersPolicy)
+            {
+                dicPersRemove = new ConcurrentDictionary<TKey, TValue>();
+            }
+
+            else if(PersistencePolicy.Synchro==config.PersPolicy)
+            {
+                dicPersAdd = new ConcurrentDictionary<TKey, TValue>();
+                dicPersRemove = new ConcurrentDictionary<TKey, TValue>();
+            }
+            //
+            ProcessStore();
+        }
+
+
+        /// <summary>
+        /// 处理持久化
+        /// </summary>
+        private void ProcessStore()
+        {
+            Task.Factory.StartNew(() =>
+            {
+                Thread.Sleep(3000);
+                if (PersistencePolicy.Synchro == config.PersPolicy)
+                {
+                    //如果是同步持久化
+                    List<TKey> lstAdd = new List<TKey>();
+                    List<TKey> lstRemoe = new List<TKey>();
+                  
+                    TValue value;
+                    //先处理新增
+                    foreach (TKey key in dicPersAdd.Keys)
+                    {
+                        if (!dicPersRemove.TryRemove(key, out value))
+                        {
+                            //数据没有移除
+                            Store.Add(key, dicPersAdd[key]);
+                        }
+                       
+                        lstAdd.Add(key);
+                    }
+
+                    //再次处理移除
+                    foreach (TKey key in dicPersRemove.Keys)
+                    {
+                        Store.Remove(key);
+                        lstRemoe.Add(key);
+                    }
+                    //删除已经持久化处理的数据
+                    foreach (TKey key in lstAdd)
+                    {
+                        dicPersAdd.TryRemove(key, out value);
+                    }
+                    foreach (TKey key in lstRemoe)
+                    {
+                        dicPersRemove.TryRemove(key, out value);
+                    }
+                    
+                }
+                else if (PersistencePolicy.All == config.PersPolicy)
+                {
+                    List<TKey> lstAdd = new List<TKey>();
+                    TValue value;
+                    foreach (var kv in dicPersAdd)
+                    {
+                        Store.Add(kv.Key, kv.Value);
+                        lstAdd.Add(kv.Key);
+                    }
+                    foreach (TKey key in lstAdd)
+                    {
+                        dicPersAdd.TryRemove(key, out value);
+                    }
+                    lstAdd.Clear();
+                  
+                }
+                else if(PersistencePolicy.Expire==config.PersPolicy)
+                {
+                    List<TKey> lstExpire = new List<TKey>();
+                    TValue value;
+                    foreach (var kv in dicPersRemove)
+                    {
+                        Store.Add(kv.Key, kv.Value);
+                        lstExpire.Add(kv.Key);
+                    }
+                    foreach (TKey key in lstExpire)
+                    {
+                        dicPersRemove.TryRemove(key, out value);
+                    }
+                    lstExpire.Clear();
+                   
+                }
+                Store.Commit();
+                ProcessStore();
+            });
+        }
+       
         #endregion
 
         #region 接口操作
+
         public void Add(TKey key, TValue value,int slfTime=-1)
         {
             if (lazyObject.IsValueCreated)
@@ -725,7 +859,7 @@ namespace JYCache
                     break;
                 case 2:
                     {
-                        CacheEntity<TValue> entityK = null;
+                        CacheEntity<TValue> entityK;
                         if (dicWeakKey.TryGetValue(key, out entityK))
                         {
                             entityK.element.WriteTime = DateTime.Now.Ticks;
@@ -809,6 +943,12 @@ namespace JYCache
                     break;
             }
             CheckPolicy();
+
+            //准备持久化
+            if (dicPersAdd != null)
+            {
+                dicPersAdd[key] = value;
+            }
         }
 
         public void Clear()
@@ -831,6 +971,12 @@ namespace JYCache
             }
         }
 
+
+        /// <summary>
+        /// 批量获取
+        /// </summary>
+        /// <param name="keys"></param>
+        /// <returns></returns>
         public List<TValue> GetCaches(TKey[] keys)
         {
            if(null==keys||0==keys.Length)
@@ -849,6 +995,10 @@ namespace JYCache
             return list;
         }
 
+        /// <summary>
+        /// 批量删除
+        /// </summary>
+        /// <param name="keys"></param>
         public void InvalidateAll(TKey[] keys)
         {
             if (null == keys || 0 == keys.Length)
@@ -861,17 +1011,33 @@ namespace JYCache
             }
         }
 
+        /// <summary>
+        /// 删除
+        /// </summary>
+        /// <param name="key"></param>
         public void Remove(TKey key)
         {
             TValue value = default(TValue);
             TryRemove(key, out value);
+
+            //这里只保存同步的情况
+            if(PersistencePolicy.Synchro==config.PersPolicy)
+            {
+                dicPersRemove[key] = value;
+            }
         }
 
+        /// <summary>
+        /// 获取
+        /// </summary>
+        /// <param name="key"></param>
+        /// <param name="value"></param>
+        /// <returns></returns>
         public bool TryGetCache(TKey key, out TValue value)
         {
               bool r = false;
              value = default(TValue);
-            object v = null;
+            object v;
             switch (kvState)
             {
                 case 1:
@@ -942,10 +1108,40 @@ namespace JYCache
             {
                 stack.Push(key);
             }
+            if (!r)
+            {
+                //没有找到，监测持久化数据
+                if (config.FindPers && Store != null && (PersistencePolicy.All == config.PersPolicy || PersistencePolicy.Expire == config.PersPolicy))
+                {
+                    if (PersItems == null)
+                    {
+                        PersItems = new PersCache<TKey, TValue>();
+                    }
+                    if (!PersItems.TryGetValue(key, out value))
+                    {
+                        if (Store.TryGetValue(key, out value))
+                        {
+                            PersItems.Add(key, value);
+                            r = true;
+                        }
+                    }
+                    else
+                    {
+                        r = true;
+                    }
+                  
+                }
+            }
             CheckPolicy();
             return r;
         }
 
+        /// <summary>
+        /// 删除
+        /// </summary>
+        /// <param name="key"></param>
+        /// <param name="value"></param>
+        /// <returns></returns>
         private bool TryRemove(TKey key,out TValue value)
         {
             value = default(TValue);

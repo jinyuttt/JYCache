@@ -13,7 +13,7 @@ using System.Text;
 namespace JYCache
 {
     /// <summary>
-    /// 功能描述    ：SigleEntity  
+    /// 功能描述    ：SigleEntity  单独保持的缓存数据Key
     /// 创 建 者    ：jinyu
     /// 创建日期    ：2018/11/7 14:47:17 
     /// 最后修改者  ：jinyu
@@ -23,6 +23,7 @@ namespace JYCache
     {
 
         public TKey Key { get; set; }
+
         public long WriteTime { get; set; }
 
         /// <summary>

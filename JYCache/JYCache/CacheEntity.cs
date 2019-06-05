@@ -13,7 +13,7 @@ using System.Text;
 namespace JYCache
 {
     /// <summary>
-    /// 功能描述    ：CacheEntity  
+    /// 功能描述    ：CacheEntity  缓存实体，存储value
     /// 创 建 者    ：jinyu
     /// 创建日期    ：2018/11/5 11:27:34 
     /// 最后修改者  ：jinyu

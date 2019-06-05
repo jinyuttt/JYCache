@@ -1,8 +1,5 @@
 ﻿using JYCache;
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -14,6 +11,7 @@ namespace ConsoleApp1
         {
 
             CacheConfig config = new CacheConfig();
+           //config.LoadConfig("");
             config.CacheTime = 1800;
             config.Policy = CachePolicy.FIFO;
            ICache<int,int> cache=CacheFactory<int, int>.Create(config);
@@ -27,7 +25,7 @@ namespace ConsoleApp1
                     for (int j = num; j <num+10000; j++)
                     {
                         cache.Add(j, j);
-                        cache.Add()
+                      
                     }
                 });
             }

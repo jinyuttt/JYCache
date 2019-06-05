@@ -1,9 +1,0 @@
-E:\Study\vs\JYCache\JYCache\JYCache\obj\Debug\netstandard2.0\JYCache.csproj.CoreCompileInputs.cache
-E:\Study\vs\JYCache\JYCache\JYCache\obj\Debug\netstandard2.0\JYCache.AssemblyInfoInputs.cache
-E:\Study\vs\JYCache\JYCache\JYCache\obj\Debug\netstandard2.0\JYCache.AssemblyInfo.cs
-E:\Study\vs\JYCache\JYCache\JYCache\bin\Debug\netstandard2.0\JYCache.deps.json
-E:\Study\vs\JYCache\JYCache\JYCache\bin\Debug\netstandard2.0\JYCache.dll
-E:\Study\vs\JYCache\JYCache\JYCache\bin\Debug\netstandard2.0\JYCache.pdb
-E:\Study\vs\JYCache\JYCache\JYCache\obj\Debug\netstandard2.0\JYCache.dll
-E:\Study\vs\JYCache\JYCache\JYCache\obj\Debug\netstandard2.0\JYCache.pdb
-E:\Study\vs\JYCache\JYCache\JYCache\obj\Debug\netstandard2.0\JYCache.csprojAssemblyReference.cache

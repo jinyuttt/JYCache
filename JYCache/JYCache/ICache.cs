@@ -2,6 +2,16 @@
 
 namespace JYCache
 {
+
+    /// <summary>
+    /// 数据移除时委托
+    /// </summary>
+    /// <typeparam name="TKey"></typeparam>
+    /// <typeparam name="TValue"></typeparam>
+    /// <param name="sender"></param>
+    /// <param name="key"></param>
+    /// <param name="value"></param>
+    /// <param name="state"></param>
     public delegate void CacheEntityRemove<TKey, TValue>(object sender, TKey key, TValue value,int state);
     public interface ICache<TKey,TValue>
     {

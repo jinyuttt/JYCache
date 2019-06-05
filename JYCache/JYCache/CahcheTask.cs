@@ -1,6 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Text;
 using System.Collections.Concurrent;
 using System.Threading.Tasks;
 using System.Threading;
@@ -21,7 +19,7 @@ namespace JYCache
     /// 最后修改者  ：jinyu
     /// 最后修改日期：2018/11/7 14:37:13 
     /// </summary>
-  public  class CacheTask<TKey,TValue>
+    public  class CacheTask<TKey,TValue>
     {
         private  ICache<TKey,TValue> cache=null;
         private volatile bool isRun = false;
@@ -60,7 +58,7 @@ namespace JYCache
             {
                 persistence[entity.Key] = null;
             }
-            
+            Take();
         }
 
         /// <summary>
@@ -93,7 +91,7 @@ namespace JYCache
         /// <param name="key"></param>
         public void RemovePersistent(TKey key)
         {
-            string item;
+            string item=null;
             persistence.TryRemove(key, out item);
         }
 
