@@ -13,6 +13,13 @@ c#版本K-V缓存，实现FIFO,LRU,LFU策略。通过配置类设置缓存信息
     ICache<int,int> cache=CacheFactory<int, int>.Create(config);  
     cache.CacheRemoveListener += Cache_CacheRemoveListener;  
     cache.Add(1, 1，10);//单独设置key保持10秒  
+
+
+-----------------------------------------------------------------------------------------
+
+新增持久化实现，采用B +树  。 
+
+配置中新增了持久化的数据内容配置。
         
         
   
