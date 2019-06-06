@@ -18,11 +18,11 @@ c#版本K-V缓存，实现FIFO,LRU,LFU策略。通过配置类设置缓存信息
 -----------------------------------------------------------------------------------------
 
 新增数据持久化  
-   1.使用方法，创建时配置：config.PersPolicy = PersistencePolicy.Expire;
-   2.如果获取数据，可以通过配置设置从持久化文件中获取：config.FindPers=true
-   3.设置持久化刷新时间：config.PersTime=3000;//毫秒，默认值
-   4.设置持久化数据目录：config.PersDir="KVData"；//默认值
+   1.使用方法，创建时配置：config.PersPolicy = PersistencePolicy.Expire;  
+   2.如果获取数据，可以通过配置设置从持久化文件中获取：config.FindPers=true  
+   3.设置持久化刷新时间：config.PersTime=3000;//毫秒，默认值  
+   4.设置持久化数据目录：config.PersDir="KVData"；//默认值  
    
-  说明:当前只是实现，还没有严格测试，持久化采用B+树结构，注意，持久其实很慢，需要根据需要设置。
+  说明:当前只是实现，还没有严格测试，持久化采用B+树结构，注意，持久其实很慢，需要根据需要设置。  
         
   
