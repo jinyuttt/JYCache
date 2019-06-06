@@ -14,6 +14,7 @@ namespace ConsoleApp1
            //config.LoadConfig("");
             config.CacheTime = 1800;
             config.Policy = CachePolicy.FIFO;
+            config.PersPolicy = PersistencePolicy.Expire;
            ICache<int,int> cache=CacheFactory<int, int>.Create(config);
             cache.CacheRemoveListener += Cache_CacheRemoveListener;
             
